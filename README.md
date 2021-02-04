@@ -30,15 +30,15 @@ app = Recognizer(c.KNOWN, debug=True, thread=True)
 
 @app.known()
 def known():
-	pass
+	print("Known Face Detected")
 
 @app.no_faces()
 def noface():
-	pass
+	print("Not faces in picture")
 
 @app.unknown()
 def unknown():
-	pass
+	print("Unknown Face Detected")
 
 app.run()
 
