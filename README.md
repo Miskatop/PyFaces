@@ -12,6 +12,7 @@
 ```bash
   pip install opencv-python
 ```
+#### Note\` if you use Linux enter the ` auso apt install python-opencv `
 ### face-recognition v1.3+
 ```bash
   pip install face-recognition
@@ -29,7 +30,7 @@ import config as c
 app = Recognizer(c.KNOWN, debug=True, thread=True)
 
 @app.known()
-def known():
+def known(user_name):
 	print("Known Face Detected")
 
 @app.no_faces()
@@ -37,7 +38,7 @@ def noface():
 	print("Not faces in picture")
 
 @app.unknown()
-def unknown():
+def unknown(frame):
 	print("Unknown Face Detected")
 
 app.run()
