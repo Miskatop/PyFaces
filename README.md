@@ -12,7 +12,7 @@
 ```bash
   pip install opencv-python
 ```
-#### Note\` if you use Linux enter the ` auso apt install python-opencv `
+#### Note\` if you use Linux enter the ` auso apt install python3-opencv `
 ### face-recognition v1.3+
 ```bash
   pip install face-recognition
