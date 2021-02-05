@@ -2,18 +2,18 @@
 from PyFaces import Recognizer
 import config as c
 
-app = Recognizer(c.KNOWN, debug=True, thread=True)
+app = Recognizer(c.KNOWN, thread=True)
 
 @app.known()
-def known():
-	pass
+def known(uname):
+	print("[ KNOWN ] - ", uname)
 
 @app.no_faces()
 def noface():
 	pass
 
 @app.unknown()
-def unknown():
+def unknown(frame):
 	pass
 
 app.run()

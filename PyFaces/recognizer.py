@@ -8,30 +8,31 @@ from time import sleep
 class Recognizer(DefaultHandlers):
 	_LOOP = True
 	capture = cv2.VideoCapture(0)
-	_known_encodings = []
-	self.THREADS = []
+	_known_encodings = {}
+	THREADS = []
 
-	def __init__(self, face_paths: list, shoot: bool=False,
-				path_to_shoot:str='detected_face/', debug:bool=False, thread:bool=False):
+	def __init__(self, face_paths:dict, shoot:bool=False,
+				path_to_shoot:str='detected_face/', 
+				debug:bool=False, thread:bool=False):
+
 		self.shoot = shoot
 		self.path_to_shoot = path_to_shoot
 		self.debug = debug
 		self.thread = thread
 
-		self.load_faces(*face_paths)
+		self.load_faces(**face_paths)
 
-	def load_faces(self, *args:list, face_paths:list=[]):
+	def load_faces(self, **face_paths):
 
-		face_paths = list(args).extend(face_paths)
-
-		for path in face_paths:
+		for name, path in face_paths.items():
 			image = recognizer.load_image_file(path)
 			face_locations = recognizer.face_locations(image)
 			face_encoding = recognizer.face_encodings(image, face_locations)
-			self._known_encodings.append(face_encoding)
+			self._known_encodings[name] = face_encoding
 
-	def run_by_thread(self, function):
-		th = Thread(target=function)
+	def run_by_thread(self, function, *args, **kwargs):
+
+		th = Thread(target=function, args=args, kwargs=kwargs)
 		self.THREADS.append(th)
 		th.start()
 
@@ -44,20 +45,17 @@ class Recognizer(DefaultHandlers):
 				_, frame = self.capture.read()
 				frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)[:, :, ::-1]
 				face_locations = recognizer.face_locations(frame)
-
-				# Setting variables to work
 				face_have = len(face_locations) >= 1
 				compare = []
 
-				# capture have a faces condition
 				if face_have:
 					face_encodings = recognizer.face_encodings(frame, face_locations)
 					for face_encoding in face_encodings:
-						for known_encoding in self._known_encodings:
-							matches = recognizer.compare_faces(known_encoding, face_encoding)
-							compare.append(matches[0])
+						for name, encoding in self._known_encodings.items():
+							matches = recognizer.compare_faces(encoding, face_encoding)
+							compare.append([name, matches[0]])
 
-				known = True in compare
+				known = True in [c[1] for c in compare]
 
 				if not face_have:
 					if self.thread:
@@ -70,18 +68,20 @@ class Recognizer(DefaultHandlers):
 						cv2.imwrite(self.path_to_shoot+'unknown.jpg', frame)
 
 					if self.thread:
-						self.run_by_thread(self._unknown_handler())
+						self.run_by_thread(self._unknown_handler(frame))
 					else:
-						self._unknown_handler()
+						self._unknown_handler(frame)
 
 					if self.debug:
 						print('[ LOG ] - Unknown')
 
 				elif known:
-					if self.thread:
-						self.run_by_thread(self._known_handler())
-					else:
-						self._known_handler()
+					for item in compare:
+						if item[1]:
+							if self.thread:
+								self.run_by_thread(self._known_handler(item[0]))
+							else:
+								self._known_handler(item[0])
 
 					if self.debug:
 						print('[ LOG ] - Known')
