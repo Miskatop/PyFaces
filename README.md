@@ -30,7 +30,7 @@ import config as c
 app = Recognizer(c.KNOWN, debug=True, thread=True)
 
 @app.known()
-def known(user_name):
+def known(user_name, face_location):
 	print("Known Face Detected")
 
 @app.no_faces()
